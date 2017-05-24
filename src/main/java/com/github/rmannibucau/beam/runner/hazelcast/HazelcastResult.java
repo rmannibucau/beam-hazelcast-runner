@@ -13,13 +13,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public abstract class HazelcastResult implements Serializable, PipelineResult {
-    public static class BatchMode extends HazelcastResult {
-        private final Future<?> task;
+public abstract class HazelcastResult<T> implements Serializable, PipelineResult {
+    public abstract T get();
+
+    public static class BatchMode<T> extends HazelcastResult<T> {
+        private final Future<T> task;
         private final JetInstance instance;
         private final boolean shutdown;
 
-        public BatchMode(final JetInstance instance, final HazelcastPipelineOptions options, final Future<?> submit) {
+        public BatchMode(final JetInstance instance, final HazelcastPipelineOptions options, final Future<T> submit) {
             this.instance = instance;
             this.task = submit;
             this.shutdown = options.isShutdownOnDone();
@@ -79,9 +81,24 @@ public abstract class HazelcastResult implements Serializable, PipelineResult {
         }
 
         @Override
+        public T get() {
+            if (State.DONE != getState()) {
+                throw new IllegalStateException("State should be done when calling get()");
+            }
+            try {
+                return task.get();
+            } catch (final InterruptedException e) {
+                Thread.interrupted();
+                throw new IllegalStateException(e);
+            } catch (final ExecutionException e) {
+                throw new IllegalStateException(e.getCause());
+            }
+        }
+
+        @Override
         public MetricResults metrics() {
             // TODO
-            return null;
+            throw new UnsupportedOperationException();
         }
     }
 }

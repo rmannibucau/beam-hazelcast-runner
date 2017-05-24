@@ -3,9 +3,7 @@ package com.github.rmannibucau.beam.runner.hazelcast;
 import com.hazelcast.jet.DAG;
 import com.hazelcast.jet.Edge;
 import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.Processors;
 import com.hazelcast.jet.Vertex;
-import com.hazelcast.jet.stream.IStreamList;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.runners.TransformHierarchy;
 
@@ -41,15 +39,8 @@ public class HazelcastPipelineVisitor extends Pipeline.PipelineVisitor.Defaults 
 
     @Override
     public void visitPrimitiveTransform(final TransformHierarchy.Node node) {
-        if (node.getInputs().isEmpty()) { // PBegin
-            final String listName = getExecutionName(node.getFullName());
-            final IStreamList<Object> list = instance.getList(listName);
-            // put node.outputs in list somehow
-            addVertex(dag.newVertex(node.getFullName(), Processors.readList(listName)));
-        } else {
-            // todo: handle inputs
-            // addVertex(dag.newVertex(node.getFullName(), Processors.groupAndAccumulate()));
-        }
+        // todo: transform beam DAG in Jet DAG
+        throw new UnsupportedOperationException(node.toString());
     }
 
     public DAG getDag() {

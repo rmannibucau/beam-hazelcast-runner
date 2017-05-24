@@ -2,6 +2,8 @@ package com.github.rmannibucau.beam.runner.hazelcast;
 
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.config.InstanceConfig;
+import com.hazelcast.jet.config.JetConfig;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineRunner;
 import org.apache.beam.sdk.metrics.MetricsEnvironment;
@@ -82,7 +84,9 @@ public class HazelcastRunner extends PipelineRunner<HazelcastResult> {
 
     private JetInstance getInstance() {
         // todo: migrate to client there
-        return Jet.newJetInstance();
+        return Jet.newJetInstance(new JetConfig()
+                .setInstanceConfig(new InstanceConfig()
+                        .setCooperativeThreadCount(1)));
     }
 
     public static HazelcastRunner fromOptions(final PipelineOptions options) {

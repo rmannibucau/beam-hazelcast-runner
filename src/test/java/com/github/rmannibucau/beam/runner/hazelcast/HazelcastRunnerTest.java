@@ -17,6 +17,8 @@ import org.junit.rules.ExpectedException;
 
 import java.io.Serializable;
 
+import static org.junit.Assert.assertEquals;
+
 public class HazelcastRunnerTest implements Serializable {
     @Rule
     public transient ExpectedException thrown = ExpectedException.none();
@@ -27,7 +29,7 @@ public class HazelcastRunnerTest implements Serializable {
 
         final PCollection<KV<String, Long>> counts =
                 p.apply(Create.of("foo", "bar", "foo", "baz", "bar", "foo"))
-                        .apply(MapElements.via(new SimpleFunction<String, String>() {
+                        .apply(MapElements.<String, String>via(new SimpleFunction<String, String>() {
                             @Override
                             public String apply(final String input) {
                                 return input;
@@ -35,7 +37,7 @@ public class HazelcastRunnerTest implements Serializable {
                         }))
                         .apply(Count.<String>perElement());
         final PCollection<String> countStrs =
-                counts.apply(MapElements.via(new SimpleFunction<KV<String, Long>, String>() {
+                counts.apply(MapElements.<KV<String, Long>, String>via(new SimpleFunction<KV<String, Long>, String>() {
                     @Override
                     public String apply(KV<String, Long> input) {
                         return String.format("%s: %s", input.getKey(), input.getValue());
@@ -47,7 +49,8 @@ public class HazelcastRunnerTest implements Serializable {
         System.out.println(p);
 
         final PipelineResult result = p.run();
-        result.waitUntilFinish();
+        assertEquals(PipelineResult.State.DONE, result.waitUntilFinish());
+        System.out.println(HazelcastResult.class.cast(result).get()); // todo: some assert or we assume PAssert did it?
     }
 
     private Pipeline getPipeline() {

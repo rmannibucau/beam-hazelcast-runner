@@ -11,4 +11,6 @@ public interface HazelcastPipelineOptions extends PipelineOptions {
     @Description("How list/maps are prefixed based on the beam model.")
     String getNamingPrefix();
     void setNamingPrefix(String prefix);
+
+    // todo: add jet options, pby a config file but inline config would be fancy
 }
