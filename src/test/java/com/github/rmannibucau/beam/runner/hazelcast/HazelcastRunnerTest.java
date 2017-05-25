@@ -35,7 +35,7 @@ public class HazelcastRunnerTest implements Serializable {
                                 return input;
                             }
                         }))
-                        .apply(Count.<String>perElement());
+                        .apply(Count.perElement());
         final PCollection<String> countStrs =
                 counts.apply(MapElements.<KV<String, Long>, String>via(new SimpleFunction<KV<String, Long>, String>() {
                     @Override
@@ -56,7 +56,6 @@ public class HazelcastRunnerTest implements Serializable {
     private Pipeline getPipeline() {
         final PipelineOptions opts = PipelineOptionsFactory.create();
         opts.setRunner(HazelcastRunner.class);
-        //opts.setRunner(DirectRunner.class);
         return Pipeline.create(opts);
     }
 }
