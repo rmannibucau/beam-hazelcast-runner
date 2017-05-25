@@ -76,7 +76,7 @@ public class HazelcastRunner extends PipelineRunner<HazelcastResult> {
         // initAccumulators(options, jsc);
 
         // batch support
-        final HazelcastPipelineVisitor visitor = new HazelcastPipelineVisitor(instance, options);
+        final HazelcastPipelineVisitor visitor = new HazelcastPipelineVisitor(true, instance, options);
         pipeline.traverseTopologically(visitor);
         return new HazelcastResult.BatchMode(instance, options, instance.newJob(visitor.getDag()).execute());
         //}

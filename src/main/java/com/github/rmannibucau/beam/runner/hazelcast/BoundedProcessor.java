@@ -1,9 +1,11 @@
 package com.github.rmannibucau.beam.runner.hazelcast;
 
 import com.hazelcast.jet.AbstractProcessor;
+import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Traverser;
 import org.apache.beam.sdk.io.BoundedSource;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -13,7 +15,7 @@ public class BoundedProcessor extends AbstractProcessor {
     private final BoundedSource.BoundedReader<?> reader;
     private final Traverser<Object> traverser;
 
-    public BoundedProcessor(final BoundedSource.BoundedReader<?> reader) {
+    public BoundedProcessor(final JetInstance instance, final BoundedSource.BoundedReader<?> reader) {
         this.reader = reader;
         this.traverser = traverseIterable(() -> new Iterator<Object>() {
             @Override
@@ -30,6 +32,11 @@ public class BoundedProcessor extends AbstractProcessor {
                 return reader.getCurrent();
             }
         });
+    }
+
+    @Override
+    protected boolean tryProcess(final int ordinal, @Nonnull final Object item) throws Exception {
+        return super.tryProcess(ordinal, item);
     }
 
     @Override
