@@ -11,11 +11,11 @@ import java.util.Iterator;
 
 import static com.hazelcast.jet.Traversers.traverseIterable;
 
-public class BoundedProcessor extends AbstractProcessor {
+public class HazelcastBoundedProcessor extends AbstractProcessor {
     private final BoundedSource.BoundedReader<?> reader;
     private final Traverser<Object> traverser;
 
-    public BoundedProcessor(final JetInstance instance, final BoundedSource.BoundedReader<?> reader) {
+    public HazelcastBoundedProcessor(final JetInstance instance, final BoundedSource.BoundedReader<?> reader) {
         this.reader = reader;
         this.traverser = traverseIterable(() -> new Iterator<Object>() {
             @Override

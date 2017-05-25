@@ -36,8 +36,10 @@ import java.util.function.Consumer;
 public class HazelcastParDoMultiOutput implements ProcessorSupplier, DoFnRunners.OutputManager {
     private final PushbackSideInputDoFnRunner<?, ?> runner;
     private final ThreadLocal<Consumer<Object>> emitter = new ThreadLocal<>();
+    private final String name;
 
     public HazelcastParDoMultiOutput(final TransformHierarchy.Node node, final PipelineOptions options, final ParDo.MultiOutput<?, ?> fn) {
+        this.name = node.getFullName();
         final ExecutionContext.StepContext context = new ExecutionContext.StepContext() {
             @Override
             public String getStepName() {
@@ -123,12 +125,18 @@ public class HazelcastParDoMultiOutput implements ProcessorSupplier, DoFnRunners
                 emitter.set(this::emit);
                 try {
                     // todo: fix it more accurately, surely a type to add during visit
-                    final WindowedValue windowedValue = WindowedValue.class.isInstance(item) ? WindowedValue.class.cast(item) : WindowedValue.valueInGlobalWindow(item);
+                    final WindowedValue windowedValue = WindowedValue.class.isInstance(item) ?
+                            WindowedValue.class.cast(item) : WindowedValue.valueInGlobalWindow(item);
                     runner.processElementInReadyWindows(windowedValue);
                 } finally {
                     emitter.remove();
                 }
                 return true;
+            }
+
+            @Override
+            public String toString() {
+                return HazelcastParDoMultiOutput.class.getSimpleName() + "#Processor{" + name + "}";
             }
         });
     }
@@ -136,5 +144,12 @@ public class HazelcastParDoMultiOutput implements ProcessorSupplier, DoFnRunners
     @Override
     public <T> void output(final TupleTag<T> tag, final WindowedValue<T> output) {
         emitter.get().accept(output);
+    }
+
+    @Override
+    public String toString() {
+        return "HazelcastParDoMultiOutput{" +
+                "name='" + name + '\'' +
+                '}';
     }
 }

@@ -84,7 +84,7 @@ public class HazelcastPipelineVisitor extends Pipeline.PipelineVisitor.Defaults 
                 final Vertex vertex = dag.newVertex(getExecutionName(node.getFullName()), (ProcessorSupplier) count -> {
                     if (count == 1) {
                         try {
-                            return Collections.singleton(new BoundedProcessor(instance, source.createReader(options)));
+                            return Collections.singleton(new HazelcastBoundedProcessor(instance, source.createReader(options)));
                         } catch (final IOException e) {
                             throw new IllegalStateException(e);
                         }
@@ -98,11 +98,12 @@ public class HazelcastPipelineVisitor extends Pipeline.PipelineVisitor.Defaults 
                                         throw new IllegalStateException(e);
                                     }
                                 })
-                                .map(r -> new BoundedProcessor(instance, r))
+                                .map(r -> new HazelcastBoundedProcessor(instance, r))
                                 .collect(toList());
                         if (list.size() < count) { // check split impl (doesnt have to respect the contract but we need to do it ourself)
                             for (int i = list.size(); i < count; i++) {
-                                list.add(new AbstractProcessor() {});
+                                list.add(new AbstractProcessor() {
+                                });
                             }
                         }
                         return list;
@@ -123,13 +124,13 @@ public class HazelcastPipelineVisitor extends Pipeline.PipelineVisitor.Defaults 
             final ParDo.MultiOutput<?, ?> fn = ParDo.MultiOutput.class.cast(transform);
             final Vertex vertex = dag.newVertex(getExecutionName(node.getFullName()), new HazelcastParDoMultiOutput(node, options, fn));
             handleEdge(node, vertex);
-        } else if (Flatten.Iterables.class.isInstance(transform)) {// flatmap
-            System.out.println("fi");
-        } else if (Flatten.PCollections.class.isInstance(transform)) { // flatmap
-            System.out.println("fpc"); // TODO
-        } else if (Window.class.isInstance(transform)) {
-            // no-op
+        } else if (Flatten.Iterables.class.isInstance(transform)) { // todo: flatmap?
+            handleEdge(node, dag.newVertex(getExecutionName(node.getFullName()), new PassthroughProcessorSupplier()));
+        } else if (Flatten.PCollections.class.isInstance(transform)) { // todo: flatmap?
+            handleEdge(node, dag.newVertex(getExecutionName(node.getFullName()), new PassthroughProcessorSupplier()));
         } else if (GroupByKey.class.isInstance(transform)) {
+            handleEdge(node, dag.newVertex(getExecutionName(node.getFullName()), new PassthroughProcessorSupplier()));
+        } else if (Window.class.isInstance(transform)) {
             // no-op
         } else if (Window.Assign.class.isInstance(transform)) {
             // no-op
